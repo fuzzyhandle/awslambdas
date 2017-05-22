@@ -7,18 +7,21 @@ import datetime
 
 
 TIMEZONEOFFSET = 5 * 3600 + 30 * 60
-#THINGNAME ='mama-garden-irrigation'
 THINGNAME = 'esp8266_D42709'
+DEFAULT_SLEEP_INTERVAL = 60*60
 
 def redundant_water_off (desiredstate):
     desiredstate["waternow"] = False
     print ("We need to ensure pump is OFF")
+    push_desired_state (desiredstate)
+    
+def push_desired_state (desiredstate):
     mypayload = json.dumps(
       {"state":{"desired":desiredstate}}
     )
     client = boto3.client('iot-data')
     response = client.update_thing_shadow(thingName= THINGNAME,payload=mypayload)
-      
+    
 def dologic(stateobj):
     
     nowepoch = int(time.time())
@@ -31,6 +34,7 @@ def dologic(stateobj):
     
     starttimefrommidnight = desiredstate.get ("dailystarttime",0)
     endtimefrommidnight = desiredstate.get ("dailyendtime",0)
+    desiredstate["sleepinterval"] = DEFAULT_SLEEP_INTERVAL
     
     if not desiredstate.get("enabled", False):
       print ("System is not Armed. Doing NOOP")
@@ -52,22 +56,20 @@ def dologic(stateobj):
     
     print ("Last Watering on {0}. Dosage Interval is {1}. Current Time is {2}".format(lastwatering,dosageinterval,nowepoch))
     
-    if nowepoch > lastwatering + dosageinterval:
+    if nowepoch >= lastwatering + dosageinterval:
       #Its time for action
-      desiredstate["waternow"] = True
-      
       print ("We need to start the pump")
-      
-      mypayload = json.dumps(
-          {"state":{"desired":desiredstate}}
-      
-      )
+      desiredstate["waternow"] = True
+      push_desired_state(desiredstate)
       client = boto3.client('iot-data')
       print (stateobj)
       response = client.update_thing_shadow(thingName= THINGNAME,payload=mypayload)
     else:
-      redundant_water_off(desiredstate)
-
+      deltatonextwatering = ( lastwatering + dosageinterval) - nowepoch
+      desiredstate["sleepinterval"] = deltatonextwatering
+      push_desired_state(desiredstate)
+      
+      
 def handler(event, context):
     
     #client = boto3.client('iot',region_name="us-west-2")
