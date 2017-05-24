@@ -78,9 +78,6 @@ def dologic(stateobj):
       print ("We need to start the pump")
       desiredstate["waternow"] = True
       push_state(DESIRED_KEY,desiredstate)
-      client = boto3.client('iot-data')
-      print (stateobj)
-      response = client.update_thing_shadow(thingName= THINGNAME,payload=mypayload)
     else:
       deltatonextwatering = ( lastwatering + dosageinterval) - nowepoch
       desiredstate["sleepinterval"] = deltatonextwatering
