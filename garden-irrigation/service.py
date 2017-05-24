@@ -77,11 +77,11 @@ def dologic(stateobj):
       #Its time for action
       print ("We need to start the pump")
       desiredstate["waternow"] = True
-      push_state(DESIRED_KEY,desiredstate)
+      push_state(DESIRED_KEY,{"waternow", True})
     else:
       deltatonextwatering = ( lastwatering + dosageinterval) - nowepoch
       desiredstate["sleepinterval"] = deltatonextwatering
-      push_state(DESIRED_KEY,desiredstate)
+      push_state(DESIRED_KEY,{"sleepinterval": deltatonextwatering})
       
       
 def handler(event, context):
