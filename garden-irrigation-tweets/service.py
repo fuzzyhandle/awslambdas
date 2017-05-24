@@ -42,11 +42,11 @@ def handler(event, context):
       #Check if this is a heatbeat update
       if metadataobj.get("reported",{}).has_key("heartbeat"):
         heartbeat = statereportedobj["heartbeat"]
-        api.update_status(u'Received Heartbeat with value {0}%'.format(heartbeat)
+        api.update_status(u'Received Heartbeat with value {0}%'.format(heartbeat))
 
       if metadataobj.get("reported",{}).has_key("lastwaterting"):
         lastwaterting = statereportedobj["lastwaterting"]
-        api.update_status(u'Irrigation cycle ran at {0}%'.format(lastwaterting)
+        api.update_status(u'Irrigation cycle ran at {0}%'.format(lastwaterting))
       
     if statedesiredobj:
       if metadataobj.get("desired",{}).has_key("waternow"):
