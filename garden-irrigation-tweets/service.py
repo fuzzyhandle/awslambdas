@@ -36,7 +36,7 @@ def handler(event, context):
       statereportedobj = stateobj.get("reported")
       
     if event.has_key("metadata"):
-      metadataobj = event["metadata"
+      metadataobj = event["metadata"]
     
     if statereportedobj:
       #Check if this is a heatbeat update
