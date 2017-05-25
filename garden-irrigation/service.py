@@ -69,7 +69,7 @@ def dologic(stateobj):
       #Something is wrong. use fuzzy logic
       #Update the last watering time to current time to avoid rewatering in the next wake up of The thing
       print ("Something is wrong. Last Watering time is {0}. Last Watering time updated on {1}. Fuzzing it up".format(lastwatering,lastwateringupdate))
-      push_state(REPORTED_KEY,{"lastwatering":lastwateringupdate})
+      push_state(REPORTED_KEY,{"lastwatering" : lastwateringupdate})
       #Dont do any further processing. Next invocation will hopefully won't come here
       return
 
@@ -77,11 +77,11 @@ def dologic(stateobj):
       #Its time for action
       print ("We need to start the pump")
       desiredstate["waternow"] = True
-      push_state(DESIRED_KEY,{"waternow", True})
+      push_state(DESIRED_KEY,{"waternow" : True})
     else:
       deltatonextwatering = ( lastwatering + dosageinterval) - nowepoch
       desiredstate["sleepinterval"] = deltatonextwatering
-      push_state(DESIRED_KEY,{"sleepinterval": deltatonextwatering})
+      push_state(DESIRED_KEY,{"sleepinterval" : deltatonextwatering})
       
       
 def handler(event, context):
