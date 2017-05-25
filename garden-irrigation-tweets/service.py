@@ -19,7 +19,7 @@ with open('./twitterconfig.json', 'r') as file:
 
 def handler(event, context):
     pp = pprint.PrettyPrinter(indent=4)
-    pp.pprint(event)
+    #pp.pprint(event)
     auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
     auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
     api = tweepy.API(auth)
@@ -42,14 +42,14 @@ def handler(event, context):
       #Check if this is a heatbeat update
       if metadataobj.get("reported",{}).has_key("heartbeat"):
         heartbeat = statereportedobj["heartbeat"]
-        api.update_status(u'Received Heartbeat with value {0}%'.format(heartbeat))
+        api.update_status(u'Received Heartbeat with value {0}'.format(heartbeat))
 
-      if metadataobj.get("reported",{}).has_key("lastwaterting"):
-        lastwaterting = statereportedobj["lastwaterting"]
-        api.update_status(u'Irrigation cycle ran at {0}%'.format(lastwaterting))
+      if metadataobj.get("reported",{}).has_key("lastwatering"):
+        lastwatering = statereportedobj["lastwatering"]
+        api.update_status(u'Irrigation cycle ran at {0}'.format(lastwatering))
       
     if statedesiredobj:
-      if metadataobj.get("desired",{}).has_key("waternow"):
+      if statedesiredobj.has_key("waternow"):
         waternow = statedesiredobj["waternow"]
         if waternow:
           api.update_status(u'Its time to run the irrigation cycle')
