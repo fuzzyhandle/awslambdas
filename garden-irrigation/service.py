@@ -50,6 +50,11 @@ def dologic(stateobj):
     if (secondsfrommidnight < starttimefrommidnight):
       print ("Its too early for irrigation")
       redundant_water_off(desiredstate)
+      deltaforstart = starttimefrommidnight - secondsfrommidnight
+      if deltaforstart < desiredstate["sleepinterval"]:
+        desiredstate["sleepinterval"] = deltaforstart
+        push_state(DESIRED_KEY,{"sleepinterval" : deltaforstart})
+
       return
   
     if (secondsfrommidnight > endtimefrommidnight):
