@@ -3,7 +3,7 @@ import tweepy
 import json
 import pprint
 
-
+FIRSTJAN2017 = 1483209000
 # Using twitter account hd_irrigation01
 # Using keys from app https://apps.twitter.com/app/13837356/keys
 # Email for account hrishikesh.date+hd_irrigation01@gmail.com
@@ -42,11 +42,19 @@ def handler(event, context):
       #Check if this is a heatbeat update
       if metadataobj.get("reported",{}).has_key("heartbeat"):
         heartbeat = statereportedobj["heartbeat"]
-        api.update_status(u'Received Heartbeat with value {0}'.format(heartbeat))
+        if heartbeat < FIRSTJAN2017 :
+          heartbeat = metadataobj["reported"]["heartbeat"]["timestamp"]
+          api.update_status(u'Received Heartbeat at {0}'.format(heartbeat))
+        else:
+          api.update_status(u'Received Heartbeat with value {0}'.format(heartbeat))
 
       if metadataobj.get("reported",{}).has_key("lastwatering"):
         lastwatering = statereportedobj["lastwatering"]
-        api.update_status(u'Irrigation cycle ran at {0}'.format(lastwatering))
+        if lastwatering < FIRSTJAN2017 :
+          lastwatering = metadataobj["reported"]["lastwatering"]["timestamp"]
+          api.update_status(u'Received Irrigation cycle update at {0}'.format(lastwatering))
+        else:
+          api.update_status(u'Irrigation cycle ran at {0}'.format(lastwatering))
       
     if statedesiredobj:
       if statedesiredobj.has_key("waternow"):
