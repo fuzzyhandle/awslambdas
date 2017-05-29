@@ -4,28 +4,27 @@ import json
 import time
 import datetime 
 
-
+THINGNAMES = ['esp8266_2BC7A5']
 
 TIMEZONEOFFSET = 5 * 3600 + 30 * 60
-THINGNAME = 'esp8266_D42709'
 DEFAULT_SLEEP_INTERVAL = 60*60
 
 DESIRED_KEY = "desired"
 REPORTED_KEY = "reported"
 
-def redundant_water_off (desiredstate):
+def redundant_water_off (desiredstate,thingname):
     desiredstate["waternow"] = False
     print ("We need to ensure pump is OFF")
-    push_state (DESIRED_KEY, desiredstate)
+    push_state (DESIRED_KEY, desiredstate,thingname)
     
-def push_state (statekey, state):
+def push_state (statekey, state,thingname):
     mypayload = json.dumps(
       {"state":{statekey:state}}
     )
     client = boto3.client('iot-data')
-    response = client.update_thing_shadow(thingName= THINGNAME,payload=mypayload)
+    response = client.update_thing_shadow(thingName= thingname,payload=mypayload)
     
-def dologic(stateobj):
+def dologic(stateobj,thingname):
     
     nowepoch = int(time.time())
     nowepochinlocaltime = nowepoch +TIMEZONEOFFSET
@@ -44,22 +43,22 @@ def dologic(stateobj):
     
     if not desiredstate.get("enabled", False):
       print ("System is not Armed. Doing NOOP")
-      redundant_water_off(desiredstate)
+      redundant_water_off(desiredstate,thingname)
       return
         
     if (secondsfrommidnight < starttimefrommidnight):
       print ("Its too early for irrigation")
-      redundant_water_off(desiredstate)
+      redundant_water_off(desiredstate,thingname)
       deltaforstart = starttimefrommidnight - secondsfrommidnight
       if deltaforstart < desiredstate["sleepinterval"]:
         desiredstate["sleepinterval"] = deltaforstart
-        push_state(DESIRED_KEY,{"sleepinterval" : deltaforstart})
+        push_state(DESIRED_KEY,{"sleepinterval" : deltaforstart},thingname)
 
       return
   
     if (secondsfrommidnight > endtimefrommidnight):
       print ("Its too late for irrigation")
-      redundant_water_off(desiredstate)
+      redundant_water_off(desiredstate,thingname)
       return
 
     lastwatering = reportedstate.get ("lastwatering",0)
@@ -74,7 +73,7 @@ def dologic(stateobj):
       #Something is wrong. use fuzzy logic
       #Update the last watering time to current time to avoid rewatering in the next wake up of The thing
       print ("Something is wrong. Last Watering time is {0}. Last Watering time updated on {1}. Fuzzing it up".format(lastwatering,lastwateringupdate))
-      push_state(REPORTED_KEY,{"lastwatering" : lastwateringupdate})
+      push_state(REPORTED_KEY,{"lastwatering" : lastwateringupdate},thingname)
       #Dont do any further processing. Next invocation will hopefully won't come here
       return
 
@@ -82,11 +81,12 @@ def dologic(stateobj):
       #Its time for action
       print ("We need to start the pump")
       desiredstate["waternow"] = True
-      push_state(DESIRED_KEY,{"waternow" : True})
+      push_state(DESIRED_KEY,{"waternow" : True},thingname)
     else:
       deltatonextwatering = ( lastwatering + dosageinterval) - nowepoch
       desiredstate["sleepinterval"] = deltatonextwatering
-      push_state(DESIRED_KEY,{"sleepinterval" : deltatonextwatering})
+      print ("Time to next watering is {0}".format(deltatonextwatering))
+      push_state(DESIRED_KEY,{"sleepinterval" : deltatonextwatering},thingname)
       
       
 def handler(event, context):
@@ -94,14 +94,13 @@ def handler(event, context):
     #client = boto3.client('iot',region_name="us-west-2")
     #things = client.list_things()
     #print (len(things))
-    
-    client = boto3.client('iot-data')
-    response = client.get_thing_shadow(thingName= THINGNAME)
-
-    streamingBody = response["payload"]
-    jsonState = json.loads(streamingBody.read())
-    
-    dologic (jsonState)
+    for thingname in THINGNAMES:
+      print ("Processing thing {0}".format(thingname))
+      client = boto3.client('iot-data')
+      response = client.get_thing_shadow(thingName= thingname)
+      streamingBody = response["payload"]
+      jsonState = json.loads(streamingBody.read())
+      dologic (jsonState,thingname)
     
     # Your code goes here!
     #e = event.get('e')
