@@ -86,7 +86,8 @@ def dologic(stateobj,thingname):
       deltatonextwatering = ( lastwatering + dosageinterval) - nowepoch
       desiredstate["sleepinterval"] = deltatonextwatering
       print ("Time to next watering is {0}".format(deltatonextwatering))
-      push_state(DESIRED_KEY,{"sleepinterval" : deltatonextwatering},thingname)
+      #Lamda runs every 15 mins. So sleep 900 more secs after the dela to ensure next round of lambda has run and flipped the waternow attribute to true
+      push_state(DESIRED_KEY,{"sleepinterval" : deltatonextwatering + 900},thingname)
       
       
 def handler(event, context):
