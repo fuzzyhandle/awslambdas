@@ -87,3 +87,6 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# Tokens and passwords
+garden-irrigation-tweets/twitterconfig.json
